@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uvicorn-debug
+  labels:
+    app: uvicorn-debug
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uvicorn-debug
+  template:
+    metadata:
+      labels:
+        app: uvicorn-debug
+    spec:
+      containers:
+        - name: uvicorn-debug
+          image: <YOUR_REGISTRY>/uvicorn-debug:latest
+          imagePullPolicy: Always
+          env:
+            - name: START_UVICORN
+              value: "1"
+            - name: RESPAWN_UVICORN
+              value: "0"
+            - name: UVICORN_EXTRA
+              value: "--reload --log-level debug"
+            - name: IDLE_COMMAND
+              value: "tail -f /dev/null"
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
